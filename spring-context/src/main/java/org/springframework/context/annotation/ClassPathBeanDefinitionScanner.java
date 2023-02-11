@@ -60,6 +60,12 @@ import org.springframework.util.PatternMatchUtils;
  * @see org.springframework.stereotype.Service
  * @see org.springframework.stereotype.Controller
  */
+
+/**
+ * bean 定义扫描器会在类路径下检测以上注解，如果存在，就在给定的 BeanFactory 中注册相应的 BeanDefinition
+ * @class DefaultListableBeanFactory 就实现了 BeanFactory，可以获得 bean 与 bean 的各种属性
+ * todo spring中 所有的 do 开头的方法，就是做实事的方法，必须看 doScan（） 位于 ClassPathBeanDefinitionScannner类 扫描器中
+ */
 public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateComponentProvider {
 
 	private final BeanDefinitionRegistry registry;
@@ -249,15 +255,19 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * @return number of beans registered
 	 */
 	public int scan(String... basePackages) {
+		//返回当前 注册器中的BeanDefinition数量
 		int beanCountAtScanStart = this.registry.getBeanDefinitionCount();
 
+		//关键点
 		doScan(basePackages);
 
 		// Register annotation config processors, if necessary.
+		// 添加一些后置处理器
 		if (this.includeAnnotationConfig) {
 			AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 		}
 
+		// 返回新增了多少个 bean
 		return (this.registry.getBeanDefinitionCount() - beanCountAtScanStart);
 	}
 
@@ -269,11 +279,29 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * @param basePackages the packages to check for annotated classes
 	 * @return set of beans registered if any for tooling registration purposes (never {@code null})
 	 */
+	/**
+	 * todo spring 扫描目标包和它的子包，doScan 接收多个包名，通常 传入项目的根路径，
+	 * 	findCandidateComponents 方法  ：  找到符合这个包路径下的所有类，从中挑选需要被管理的
+	 * @see @Component
+	 * @see @Repository
+	 * @see @service
+	 * @see @Controller
+	 * @param basePackages
+	 * @return
+	 */
 	protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
+		//todo Holder 表示持有者  BeanDefinitionHolder中存储 的BeanDe及其名字
+		// 保存扫描到的 BeanDefinition
 		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
+
+		/**入参 @param basePackages 是一个包名数组，所以遍历这个数组 */
 		for (String basePackage : basePackages) {
+			//todo 关键点 根据包名找到 带有 指定注解的类中的所有 BeanDefinition 对象
+			//todo findCandidateComponents 找到候选者  这个方法找到标注@Component注解的类 并将其封装为 BeanDefinition
 			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
+
+			// 遍历 符合条件的（带有指定注解）的 BeanDefinition 集合
 			for (BeanDefinition candidate : candidates) {
 				ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
 				candidate.setScope(scopeMetadata.getScopeName());
@@ -281,14 +309,32 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 				if (candidate instanceof AbstractBeanDefinition) {
 					postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
 				}
+
+				/**
+				 * 根据其他注解 设置 BeanDefinition 对应字段值
+				 * 此条件是城里的 淫威扫描过程中  返回的 是 @class ScannedGenericBeanDefinition 其继承 AnnotatedBeanDefinition
+				 */
 				if (candidate instanceof AnnotatedBeanDefinition) {
+					// todo 次放飞加载其余的注解如 @Primary用来在众多注解中 优先选择一个 将其他注解 填充袋  BeanDefinition
 					AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
 				}
+
+				/**
+				 * 验证 bean 是否存在
+				 */
 				if (checkCandidate(beanName, candidate)) {
+					// todo使用 BeanDefinitionHolder 包装 BeanDefinition
 					BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(candidate, beanName);
 					definitionHolder =
 							AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
 					beanDefinitions.add(definitionHolder);
+
+					/**
+					 * 向容器注册 BeanDefinition
+					 * doScan 的注册 封装为 BeanDefinitionHolder，此对象里面包含BeanDefinition，调用
+					 * registerBeanDefinition 添加到容器中，
+					 * 容器为 DefaultListableBeanFactory.class
+					 */
 					registerBeanDefinition(definitionHolder, this.registry);
 				}
 			}

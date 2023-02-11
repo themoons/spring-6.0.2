@@ -6,4 +6,13 @@
 	<bean id="user" class="org.springframework.entity.User">
 		<property name="name" value="lemon guo"/>
 	</bean>
+
+	<bean id="dog" class="org.springframework.entity.Dog">
+		<property name="color" value="yellow"/>
+		<property name="age" value="13"/>
+	</bean>
+
+	<bean id="teddyDog" class="org.springframework.entity.TeddyDog" parent="dog">
+		<property name="name" value="13"/>
+	</bean>
 </beans>

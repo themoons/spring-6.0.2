@@ -40,11 +40,14 @@ import org.springframework.util.Assert;
  * @see AnnotatedBeanDefinition#getMetadata()
  * @see org.springframework.core.type.StandardAnnotationMetadata
  */
+//todo 用来描述标注使用了 @Configuration 注解标记配置类 解析为 AnnotatedGenericBeanDefinition
 @SuppressWarnings("serial")
 public class AnnotatedGenericBeanDefinition extends GenericBeanDefinition implements AnnotatedBeanDefinition {
 
+	//注解元数据
 	private final AnnotationMetadata metadata;
 
+	//方法元数据
 	@Nullable
 	private MethodMetadata factoryMethodMetadata;
 
@@ -53,8 +56,10 @@ public class AnnotatedGenericBeanDefinition extends GenericBeanDefinition implem
 	 * Create a new AnnotatedGenericBeanDefinition for the given bean class.
 	 * @param beanClass the loaded bean class
 	 */
+	//为给定的 bean 创建一个新的 AnnotationGenericBeanDefinition类
 	public AnnotatedGenericBeanDefinition(Class<?> beanClass) {
 		setBeanClass(beanClass);
+		//当前类有哪些注解
 		this.metadata = AnnotationMetadata.introspect(beanClass);
 	}
 
@@ -68,6 +73,7 @@ public class AnnotatedGenericBeanDefinition extends GenericBeanDefinition implem
 	 * @param metadata the annotation metadata for the bean class in question
 	 * @since 3.1.1
 	 */
+	//通过注解元数据 创建一个 AnnotatedGenericBeanDefinition
 	public AnnotatedGenericBeanDefinition(AnnotationMetadata metadata) {
 		Assert.notNull(metadata, "AnnotationMetadata must not be null");
 		if (metadata instanceof StandardAnnotationMetadata sam) {
@@ -86,6 +92,7 @@ public class AnnotatedGenericBeanDefinition extends GenericBeanDefinition implem
 	 * @param factoryMethodMetadata metadata for the selected factory method
 	 * @since 4.1.1
 	 */
+	//基于一个 带注解的类 和该类上的工厂方法，创建一个新的  @class AnnotatedGenericBeanDefinition
 	public AnnotatedGenericBeanDefinition(AnnotationMetadata metadata, MethodMetadata factoryMethodMetadata) {
 		this(metadata);
 		Assert.notNull(factoryMethodMetadata, "MethodMetadata must not be null");

@@ -46,7 +46,7 @@ import org.springframework.core.AliasRegistry;
  * @see PropertiesBeanDefinitionReader
  */
 public interface BeanDefinitionRegistry extends AliasRegistry {
-
+//AliasRegistry todo  别名注册器
 	/**
 	 * Register a new bean definition with this registry.
 	 * Must support RootBeanDefinition and ChildBeanDefinition.

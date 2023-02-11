@@ -37,6 +37,13 @@ import org.springframework.util.ObjectUtils;
  * @see RootBeanDefinition
  * @see ChildBeanDefinition
  */
+
+/**
+ * todo：spring2.5后新增 bean文件配置属性定义类 一站式服务类，
+ * 	可以动态设置父 Bean，兼具 RootBeanDefinition和 ChildBeanDefinition 的功能。
+ * 	仅在 @class AbstractBeanDefinition 类 增加了  @value parentName
+ * 	xml配置，会解析所有属性并统一封装到 GenericBeanDefinition类型的实例中，慢慢解析
+ */
 @SuppressWarnings("serial")
 public class GenericBeanDefinition extends AbstractBeanDefinition {
 

@@ -53,38 +53,55 @@ import org.springframework.util.Assert;
  * @see GenericBeanDefinition
  * @see ChildBeanDefinition
  */
+
+/**
+ * spring 创建 Bean 的时候就是基于 RootBeanDefinition来创建的  可以单独存在
+ */
 @SuppressWarnings("serial")
 public class RootBeanDefinition extends AbstractBeanDefinition {
 
+	/**
+	 * todo Holder 持有者
+	 * 	BeanDefinitionHolder 存储 Bean 的名称  别名 BeanDefinition
+	 */
 	@Nullable
 	private BeanDefinitionHolder decoratedDefinition;
 
+	//AnnotatedElement 是 java 反射包的接口，通过它可以查看 bean 的注解信息
 	@Nullable
 	private AnnotatedElement qualifiedElement;
 
 	/** Determines if the definition needs to be re-merged. */
+	/** 决定了 BeanDefinition 需要重新合并*/
 	volatile boolean stale;
 
+	//允许缓存
 	boolean allowCaching = true;
 
+	//工厂方法是否唯一
 	boolean isFactoryMethodUnique;
 
+	//封装了 java.lang.reflect.Type  提供了泛型相关的操作
 	@Nullable
 	volatile ResolvableType targetType;
 
 	/** Package-visible field for caching the determined Class of a given bean definition. */
+	/** 用于缓存 给定 bean 定义中确定的类 表示 RootBeanDefinition 存储哪个类的信息 */
 	@Nullable
 	volatile Class<?> resolvedTargetType;
 
 	/** Package-visible field for caching if the bean is a factory bean. */
+	//如果 bean 是 FactoryBean 则用于缓存
 	@Nullable
 	volatile Boolean isFactoryBean;
 
 	/** Package-visible field for caching the return type of a generically typed factory method. */
+	//用于缓存 泛型类型工厂方法的返回类型
 	@Nullable
 	volatile ResolvableType factoryMethodReturnType;
 
 	/** Package-visible field for caching a unique factory method candidate for introspection. */
+	//缓存唯一的工厂方法
 	@Nullable
 	volatile Method factoryMethodToIntrospect;
 
@@ -93,6 +110,7 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	volatile String resolvedDestroyMethodName;
 
 	/** Common lock for the four constructor fields below. */
+	//下面四个构造函数字段的公共锁
 	final Object constructorArgumentLock = new Object();
 
 	/** Package-visible field for caching the resolved constructor or factory method. */
@@ -120,12 +138,15 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	@Nullable
 	volatile Boolean beforeInstantiationResolved;
 
+	//实际 缓存类型为 Constructor  filed  method 类型
 	@Nullable
 	private Set<Member> externallyManagedConfigMembers;
 
+	//InitializingBean 中的 init 回调函数形 afterPropertiesSet 在此记录   进行生命周期回调
 	@Nullable
 	private Set<String> externallyManagedInitMethods;
 
+	//DisposableBean 的destroy 回调函数名 destroy 会在此记录 进行 生命周期回调
 	@Nullable
 	private Set<String> externallyManagedDestroyMethods;
 
@@ -268,11 +289,16 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	}
 
 
+	/**
+	 * RootBeanDefinition 没有父 BeanDefinition
+	 * @return
+	 */
 	@Override
 	public String getParentName() {
 		return null;
 	}
 
+	//不能set
 	@Override
 	public void setParentName(@Nullable String parentName) {
 		if (parentName != null) {

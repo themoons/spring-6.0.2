@@ -29,6 +29,13 @@ import org.springframework.util.Assert;
  * @author Sam Brannen
  * @since 2.0
  */
+
+/**
+ * todo 定义用于附加和访问元数据的通用协定的接口
+ * 		可以是任意对象，具体的实现则是{@class AttributeAccessorSupport} 采用LinkedHashMap进行存储
+ * @author shy
+ * @since 20230109
+ */
 public interface AttributeAccessor {
 
 	/**
@@ -39,6 +46,8 @@ public interface AttributeAccessor {
 	 * class or package names as prefix.
 	 * @param name the unique attribute key
 	 * @param value the attribute value to be attached
+	 *
+	 * 设置属性的值（名称唯一)
 	 */
 	void setAttribute(String name, @Nullable Object value);
 
@@ -47,6 +56,8 @@ public interface AttributeAccessor {
 	 * <p>Return {@code null} if the attribute doesn't exist.
 	 * @param name the unique attribute key
 	 * @return the current value of the attribute, if any
+	 *
+	 * 获得指定属性名称的值，如果不存在 返回null
 	 */
 	@Nullable
 	Object getAttribute(String name);
@@ -89,6 +100,8 @@ public interface AttributeAccessor {
 	 * @param name the unique attribute key
 	 * @return the last value of the attribute, if any
 	 */
+
+	//删除指定name的属性，如果不存在返回null
 	@Nullable
 	Object removeAttribute(String name);
 
@@ -97,10 +110,13 @@ public interface AttributeAccessor {
 	 * <p>Otherwise return {@code false}.
 	 * @param name the unique attribute key
 	 */
+
+	//判断指定的属性名称是否存在
 	boolean hasAttribute(String name);
 
 	/**
 	 * Return the names of all attributes.
+	 * 返回所有属性的名称
 	 */
 	String[] attributeNames();
 

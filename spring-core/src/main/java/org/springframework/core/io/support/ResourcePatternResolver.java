@@ -67,6 +67,10 @@ public interface ResourcePatternResolver extends ResourceLoader {
 	 * prefix have been expanded to include the module path as well as the class path.
 	 * @see org.springframework.core.io.ResourceLoader#CLASSPATH_URL_PREFIX
 	 */
+	/**
+	 * todo classpath:用于当前项目的bean
+	 * 		classpath*:用于扫描jar中的bean
+	 */
 	String CLASSPATH_ALL_URL_PREFIX = "classpath*:";
 
 	/**

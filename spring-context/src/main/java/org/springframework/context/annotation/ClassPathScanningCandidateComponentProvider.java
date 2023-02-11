@@ -309,10 +309,14 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @return a corresponding Set of autodetected bean definitions
 	 */
 	public Set<BeanDefinition> findCandidateComponents(String basePackage) {
+		// 如果我们没有定义 spring.components  这个文件 去 索引扫描的类，就不会走if
+		// 一般不会走此方法，关键词 meta-inf/spring.components
 		if (this.componentsIndex != null && indexSupportsIncludeFilters()) {
 			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
 		}
 		else {
+			//正常启动spring 走此方法
+			//todo 扫描出 basePackage路径下的所有类  解析 @Component 生成 BeanDefinition类
 			return scanCandidateComponents(basePackage);
 		}
 	}
@@ -416,11 +420,25 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	private Set<BeanDefinition> scanCandidateComponents(String basePackage) {
 		Set<BeanDefinition> candidates = new LinkedHashSet<>();
 		try {
+			/**
+			 * todo 根据传入的包名 拼接成完整的通配符路径
+			 * 	classpath*:com/xxx/**//*.class
+			 */
 			String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
 					resolveBasePackage(basePackage) + '/' + this.resourcePattern;
+
+			/**
+			 * 扫描出所有符合指定通配符的所有 class
+			 * 会收集所有符合这个通配符的Resource对象，
+			 * @class Resource 中包含此类的具体位置
+			 */
 			Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath);
 			boolean traceEnabled = logger.isTraceEnabled();
 			boolean debugEnabled = logger.isDebugEnabled();
+
+			/**
+			 * 遍历 Resource 集合 过滤掉不需要的 class
+			 */
 			for (Resource resource : resources) {
 				String filename = resource.getFilename();
 				if (filename != null && filename.contains(ClassUtils.CGLIB_CLASS_SEPARATOR)) {
@@ -431,7 +449,20 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 					logger.trace("Scanning " + resource);
 				}
 				try {
+					/**
+					 * 真正读取 class 的metadata 信息的 是 @class SimpleMetadataReader
+					 * 默认实现是 CachingMetadataReaderFactory 在其基础上增加了缓存
+					 *
+					 * 取出访问权限 父类名 注解等信息
+					 * 最终返回 MetadataReader 对象
+					 * 其中包含 此类上 有哪些注解
+					 */
 					MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource);
+
+					/**
+					 * 如果此类 上 有 Component 注解及其子类
+					 * 进行 BeanDefinition 注册
+					 */
 					if (isCandidateComponent(metadataReader)) {
 						ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 						sbd.setSource(resource);
@@ -489,12 +520,27 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @param metadataReader the ASM ClassReader for the class
 	 * @return whether the class qualifies as a candidate component
 	 */
+	/**
+	 * 判断 MetadataReader、 对象 是否有 指定的注解
+	 * @param metadataReader
+	 * @return
+	 * @throws IOException
+	 */
 	protected boolean isCandidateComponent(MetadataReader metadataReader) throws IOException {
 		for (TypeFilter tf : this.excludeFilters) {
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
 				return false;
 			}
 		}
+
+		/**
+		 * includeFilters 字段保存的就是注解列表，
+		 * 默认情况下含有 Component  ManagedBean Named 三个，
+		 * 所以，类上只要有这三个注解，将其纳入 Spring 管理
+		 * 此外 ，@Service 等注解又标有 Component 注解
+		 * 可以理解为 Service等 继承了 Component
+		 * 所以，标有 @Service等注解可以纳入Spring 管理，同样 可以自定义注解 标注 @Component 同样可以
+		 */
 		for (TypeFilter tf : this.includeFilters) {
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
 				return isConditionMatch(metadataReader);

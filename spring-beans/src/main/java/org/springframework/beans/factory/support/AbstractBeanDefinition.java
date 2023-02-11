@@ -54,6 +54,8 @@ import org.springframework.util.StringUtils;
  * @see GenericBeanDefinition
  * @see RootBeanDefinition
  * @see ChildBeanDefinition
+ *
+ * @descripe 抽象类， BeanDefinition 仅定义 get/set 方法，没有提供属性 ，具体属性由本类定义
  */
 @SuppressWarnings("serial")
 public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccessor
@@ -63,11 +65,27 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * Constant for the default scope name: {@code ""}, equivalent to singleton
 	 * status unless overridden from a parent bean definition (if applicable).
 	 */
+	/**
+	 * todo 默认作用域名称的常量：等效于 单例（singleton）
+	 */
 	public static final String SCOPE_DEFAULT = "";
 
 	/**
 	 * Constant that indicates no external autowiring at all.
 	 * @see #setAutowireMode
+	 */
+	/**
+	 * todo 自动装配的一些常量
+	 * 	对应：autowireMode
+	 * 		0：默认值，未激活Autowiring，bean标签 autowire 值为 no
+	 * 			在xml中需要手动指定依赖注入对象，配置 property 标签或者 constructor-arg 标签
+	 * 			使用 @Autowired 注解，autowireMode 的值也为 0
+	 * 		1：根据 set 方法的名称作为Bean名称进行依赖查找（去掉 set ，并尝试将首字母变为小写 setName == name）并将对象
+	 * 			设置到该set方法的参数上
+	 * 			bean 标签的 autowire 属性值配置为 buName
+	 * 		2：根据set方法参数的类型 作为 bean 类型进行依赖查找，并将对象设置到该 set 方法的参数上，bean标签的 autowire 属性 = byType
+	 * 		3：构造器注入，bean标签的 autowire 属性值配置为 constructor
+	 * 		4：（弃用） 表明通过Bean 的class的内部来自动装配  bean标签对应 autodetect
 	 */
 	public static final int AUTOWIRE_NO = AutowireCapableBeanFactory.AUTOWIRE_NO;
 
@@ -103,6 +121,13 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * Constant that indicates no dependency check at all.
 	 * @see #setDependencyCheck
 	 */
+	/**
+	 * todo 依赖检查是否合法，在本类中 默认不进行依赖检查
+	 * 		0：不进行检查
+	 * 		1：对象引用进行依赖性检查
+	 * 		2：对 简单 属性进行依赖性检查
+	 * 		3：对所有属性进行依赖检查
+	 */
 	public static final int DEPENDENCY_CHECK_NONE = 0;
 
 	/**
@@ -135,71 +160,123 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * <p>Currently, the method names detected during destroy method inference
 	 * are "close" and "shutdown", if present on the specific bean class.
 	 */
+	/**
+	 * todo：若Bean 未指定销毁方法，容器应该尝试推断 Bean 的销毁方法的命长，目前推断的销毁方法的名称一般为 close or shutdown
+	 */
 	public static final String INFER_METHOD = "(inferred)";
 
 
+	//Bean 的 class 对象 或 类的全限定名
 	@Nullable
 	private volatile Object beanClass;
 
+	//默认的 scope 是单例，对应bean属性 scope
 	@Nullable
 	private String scope = SCOPE_DEFAULT;
 
+	//todo 是否是抽象，对应bean属性 abstract
 	private boolean abstractFlag = false;
 
+	//是否懒加载，对应 bean 属性 lazy-init 默认为 false
 	@Nullable
 	private Boolean lazyInit;
 
+	//自动注入模式 对应 bean属性 autowire 默认不进行自动装配
 	private int autowireMode = AUTOWIRE_NO;
 
+	//是否进行依赖检查，默认不进行
 	private int dependencyCheck = DEPENDENCY_CHECK_NONE;
 
+	/**
+	 * todo 用来表示一个 bean 的实例化是否依赖另一个 bean 的实例化 先加载 dependsOn 的 bean
+	 * 对应 bean 的属性 depend-on
+	 * @DependsOn
+	 */
 	@Nullable
 	private String[] dependsOn;
 
+	/**
+	 * autowire-candidate 属性 = false，<br>这样容器在查找自动装配对象时，不考虑该 bean，即它不会被考虑作为其他 bean
+	 * 自动装配的候选者，但是该 bean 本身还是可以使用自动装配来注入其他 bean 的
+	 */
 	private boolean autowireCandidate = true;
 
+	/**
+	 * todo 自动装配时，出现多个 bean 的候选者时， 将作为首选项， 对应 bean 标签 primary 默认不是首选项。@Primary
+	 */
 	private boolean primary = false;
 
+	/**
+	 * todo 用于记录 Qualifier， 对应子元素 qualifier <bean><qualifier></qualifier></bean>
+	 * 	如果容器中有多个相同类型的bean
+	 * 	此时，可以使用 qualifier 属性来设置加载指定 Bean 名称 的bean
+	 */
 	private final Map<String, AutowireCandidateQualifier> qualifiers = new LinkedHashMap<>();
 
+	//todo 函数式接口，创建 bean 实例的方式之一
 	@Nullable
 	private Supplier<?> instanceSupplier;
 
+	//todo 是否允许访问 非 public 方法和属性，默认是 true
 	private boolean nonPublicAccessAllowed = true;
 
+	/**
+	 * 是否以一种 宽松的方式 解析构造函数，默认为true
+	 * 如果为false 可能出现以下情况
+	 * 	interface ITest{}
+	 * 	class ITestImpl implements ITest{}
+	 * 	class Main {
+	 * 	    Main(ITest i){}
+	 * 	    Main(ITestImpl i){}
+	 * 	    抛出异常，因为 Spring 无法准确定位 那个构造函数程序设置
+	 * 	}
+	 */
 	private boolean lenientConstructorResolution = true;
 
+	//工厂类名 对应 bean 属性 factory-bean
 	@Nullable
 	private String factoryBeanName;
 
+	//工厂方法名，对应bean 属性 factory-method
 	@Nullable
 	private String factoryMethodName;
 
+	//记录 构造函数 注入属性，对应 bean 属性 constructor-arg
 	@Nullable
 	private ConstructorArgumentValues constructorArgumentValues;
 
+	//Bean属性的名称 以及 对应的值，这里不是存放 构造函数相关的参数值，只会存放 通过 setter注入的值
 	@Nullable
 	private MutablePropertyValues propertyValues;
 
+	//方法重写的持有者，记录 lookup-method replaced-method 元素 @Lookup
 	private MethodOverrides methodOverrides = new MethodOverrides();
 
+	//初始化方法，对应 bean 属性 initMethodName
 	@Nullable
 	private String[] initMethodNames;
 
+	//销毁方法，对应 bean 属性 destory-method
 	@Nullable
 	private String[] destroyMethodNames;
 
+	//是否执行 init-method 默认为true
 	private boolean enforceInitMethod = true;
 
+	//是否执行 destroy-method 默认为true
 	private boolean enforceDestroyMethod = true;
 
+	//是否是 用户定义的  而不是应用程序本身定义的  创建 AOP是 为true
 	private boolean synthetic = false;
 
+	//bean 的角色，为用户自定义 bean
 	private int role = BeanDefinition.ROLE_APPLICATION;
 
+	//bean的描述信息
 	@Nullable
 	private String description;
 
+	//bean定义的资源
 	@Nullable
 	private Resource resource;
 
@@ -225,6 +302,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * bean definition.
 	 * @param original the original bean definition to copy from
 	 */
+	//todo 使用深拷贝创建爱你一个新的
 	protected AbstractBeanDefinition(BeanDefinition original) {
 		setParentName(original.getParentName());
 		setBeanClassName(original.getBeanClassName());
@@ -294,6 +372,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * in the given bean definition.
 	 * </ul>
 	 */
+	//todo 赋值一个bean的定义到当前bena 通常 福字bean合并时使用
 	public void overrideFrom(BeanDefinition other) {
 		if (StringUtils.hasLength(other.getBeanClassName())) {
 			setBeanClassName(other.getBeanClassName());

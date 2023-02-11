@@ -25,11 +25,15 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @since 2.0
  */
+//传送配置源对象的超级接口
 public interface BeanMetadataElement {
 
 	/**
 	 * Return the configuration source {@code Object} for this metadata element
+	 * 返回此元数据元素的数据源
 	 * (may be {@code null}).
+	 *
+	 * 返回bean的来源
 	 */
 	@Nullable
 	default Object getSource() {

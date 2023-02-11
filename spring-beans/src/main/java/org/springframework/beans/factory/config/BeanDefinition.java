@@ -46,6 +46,12 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * @see #setScope
 	 * @see ConfigurableBeanFactory#SCOPE_SINGLETON
 	 */
+
+	/**
+	 * 单例Bean 还是原型 Bean
+	 * 	敞亮的值分别为 singleton:容器中只有一杯bean 指向同一个实例对象
+	 * 				prototype:可以存在多个实例bean
+	 */
 	String SCOPE_SINGLETON = ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 	/**
@@ -60,6 +66,13 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	/**
 	 * Role hint indicating that a {@code BeanDefinition} is a major part
 	 * of the application. Typically corresponds to a user-defined bean.
+	 */
+	/**
+	 * Bean的角色
+	 * 	todo
+	 * 		0：用户自己定义的bean
+	 * 		1：来源于配置文件的bean
+	 * 		2：spring内部的bean
 	 */
 	int ROLE_APPLICATION = 0;
 
@@ -88,6 +101,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	/**
 	 * Set the name of the parent definition of this bean definition, if any.
 	 */
+	//todo 配置 / 获取 父BeanDefinition的名称 XML中的 <bean parent="">
 	void setParentName(@Nullable String parentName);
 
 	/**
@@ -104,6 +118,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * @see #setFactoryBeanName
 	 * @see #setFactoryMethodName
 	 */
+	//todo 配置 获取 Bean 的Class全路径  xml中的 <bean class="">
 	void setBeanClassName(@Nullable String beanClassName);
 
 	/**
@@ -126,6 +141,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * @see #SCOPE_SINGLETON
 	 * @see #SCOPE_PROTOTYPE
 	 */
+	//todo 配置 获取 bean的作用域  XML中的<bean scope="">配置
 	void setScope(@Nullable String scope);
 
 	/**
@@ -140,6 +156,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * <p>If {@code false}, the bean will get instantiated on startup by bean
 	 * factories that perform eager initialization of singletons.
 	 */
+	//todo 配置 获取Bean是否 懒加载默认false 立马加载 XML中的 <bean lazy-init="">
 	void setLazyInit(boolean lazyInit);
 
 	/**
@@ -152,6 +169,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * Set the names of the beans that this bean depends on being initialized.
 	 * The bean factory will guarantee that these beans get initialized first.
 	 */
+	//todo 配置 获取 Bean 的依赖对象  xml中的<bean depends-on="">  bean工厂会先行初始化 其依赖的Bean对象
 	void setDependsOn(@Nullable String... dependsOn);
 
 	/**
@@ -167,6 +185,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * if the specified bean is not marked as an autowire candidate. As a consequence,
 	 * autowiring by name will nevertheless inject a bean if the name matches.
 	 */
+	//todo 配置  获取 Bean 是否是自动装配的候选者  默认为true  XML中的 <bean autowire-candidate="">
+	//todo 此标志位仅会影响 类型为基础的自动装配，不会影响 名称为基础的动态装配
 	void setAutowireCandidate(boolean autowireCandidate);
 
 	/**
@@ -179,6 +199,11 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * <p>If this value is {@code true} for exactly one bean among multiple
 	 * matching candidates, it will serve as a tie-breaker.
 	 */
+	/**
+	 * todo 如果找到了多个可注入的bean，则选择被@Primary标记的bean
+	 * 		获取当前 Bean 是否为首选的Bean XML中的 <bean primary="">
+	 * @param primary
+	 */
 	void setPrimary(boolean primary);
 
 	/**
@@ -190,6 +215,10 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * Specify the factory bean to use, if any.
 	 * This the name of the bean to call the specified factory method on.
 	 * @see #setFactoryMethodName
+	 */
+	/**
+	 * todo 配置 获取 FactoryBean的名字  XML中的 <bean factory-bean=""></>
+	 * @param factoryBeanName
 	 */
 	void setFactoryBeanName(@Nullable String factoryBeanName);
 
@@ -207,6 +236,11 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * @see #setFactoryBeanName
 	 * @see #setBeanClassName
 	 */
+	/**
+	 * todo 配置 获取 FactoryMethod 的名字，可以是某个实例的方法（和factoryBean配合使用）
+	 * 		可以是静态方法  XML 中的 《bean factory-method="">
+	 * @param factoryMethodName
+	 */
 	void setFactoryMethodName(@Nullable String factoryMethodName);
 
 	/**
@@ -220,12 +254,14 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * <p>The returned instance can be modified during bean factory post-processing.
 	 * @return the ConstructorArgumentValues object (never {@code null})
 	 */
+	//todo 返回该 Bean 构造方法的参数值
 	ConstructorArgumentValues getConstructorArgumentValues();
 
 	/**
 	 * Return if there are constructor argument values defined for this bean.
 	 * @since 5.0.2
 	 */
+	//判断 getConstructorArgumentValues 是否为空对象
 	default boolean hasConstructorArgumentValues() {
 		return !getConstructorArgumentValues().isEmpty();
 	}
@@ -235,12 +271,14 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * <p>The returned instance can be modified during bean factory post-processing.
 	 * @return the MutablePropertyValues object (never {@code null})
 	 */
+	//todo 获得普通属性的集合
 	MutablePropertyValues getPropertyValues();
 
 	/**
 	 * Return if there are property values defined for this bean.
 	 * @since 5.0.2
 	 */
+	//判断 getPropertyValues 是否为空对象
 	default boolean hasPropertyValues() {
 		return !getPropertyValues().isEmpty();
 	}
@@ -248,6 +286,10 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	/**
 	 * Set the name of the initializer method.
 	 * @since 5.1
+	 */
+	/**
+	 * todo 配置 获取 Bean 的初始化方法  XML中的 <bean init-method=""></>
+	 * @param initMethodName
 	 */
 	void setInitMethodName(@Nullable String initMethodName);
 
@@ -261,6 +303,10 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	/**
 	 * Set the name of the destroy method.
 	 * @since 5.1
+	 */
+	/**
+	 * 配置 获取 bean 的销毁方法， XML 中的<bean destroy-method=""></>
+	 * @param destroyMethodName
 	 */
 	void setDestroyMethodName(@Nullable String destroyMethodName);
 
@@ -279,6 +325,10 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * @see #ROLE_APPLICATION
 	 * @see #ROLE_SUPPORT
 	 * @see #ROLE_INFRASTRUCTURE
+	 */
+	/**
+	 * 配置获取 Bean 的角色
+	 * @param role
 	 */
 	void setRole(int role);
 
@@ -316,6 +366,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * @since 5.2
 	 * @see ConfigurableBeanFactory#getMergedBeanDefinition
 	 */
+	//todo 用来解析已被Bean 对应的类型上的各种信息 比如 泛型等
 	ResolvableType getResolvableType();
 
 	/**
@@ -336,12 +387,14 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	/**
 	 * Return whether this bean is "abstract", that is, not meant to be instantiated.
 	 */
+	//是否抽象  XML 中的 <bean abstract="true">
 	boolean isAbstract();
 
 	/**
 	 * Return a description of the resource that this bean definition
 	 * came from (for the purpose of showing context in case of errors).
 	 */
+	//todo 返回定义Bean 的资源描述
 	@Nullable
 	String getResourceDescription();
 
@@ -350,6 +403,10 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * <p>Allows for retrieving the decorated bean definition, if any.
 	 * <p>Note that this method returns the immediate originator. Iterate through the
 	 * originator chain to find the original BeanDefinition as defined by the user.
+	 */
+	/**
+	 * todo 如果当前 BeanDefinition 是一个代理对象，那么该方法可以用来返回原始 的 BeanDefinition
+	 * @return
 	 */
 	@Nullable
 	BeanDefinition getOriginatingBeanDefinition();

@@ -43,6 +43,10 @@ import org.springframework.util.ObjectUtils;
  * @see GenericBeanDefinition
  * @see RootBeanDefinition
  */
+
+/**
+ * 相当于一个子类，不能单独存在，必须依赖一个父BeanDefinition
+ */
 @SuppressWarnings("serial")
 public class ChildBeanDefinition extends AbstractBeanDefinition {
 

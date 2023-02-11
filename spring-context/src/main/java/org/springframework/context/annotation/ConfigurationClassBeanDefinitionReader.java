@@ -380,6 +380,12 @@ class ConfigurationClassBeanDefinitionReader {
 	 * Used in bean overriding cases where it's necessary to determine whether the bean
 	 * definition was created externally.
 	 */
+	/**
+	 * 静态内部类，
+	 * todo 负责 将@Bean 注解的方法转换为对应的 ConfigurationClassBeanDefinition类
+	 * 	如果@Bean注解没有指定Bean名称，使用方法名作为Bean名称
+	 * 	标注@Configuration @Component @Service 注解的类 会成为一个工厂类，@Bean注解的方法会成为一个工厂方法，通过方法实例化Bean
+	 */
 	@SuppressWarnings("serial")
 	private static class ConfigurationClassBeanDefinition extends RootBeanDefinition implements AnnotatedBeanDefinition {
 
